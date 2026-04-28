@@ -15,9 +15,14 @@ import {
 import {
   getMedicalRecords,
   searchMedicalRecords,
+  verifyRecord,
   type MedicalRecord,
   type RecordFilters,
 } from '../services/medicalRecordService';
+
+import { VerificationBadge } from '../components/VerificationBadge';
+
+import { VerificationBadge } from '../components/VerificationBadge';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,7 +69,12 @@ const MedicalRecordViewerScreen: React.FC<Props> = ({ petId, petName, onBack }) 
       if (startDate) filters.startDate = startDate;
       if (endDate) filters.endDate = endDate;
       const res = await getMedicalRecords(petId, filters);
-      setRecords(res.data);
+      // Map backend fields to UI-friendly verificationStatus
+      const mapped = res.data.map((r) => ({
+        ...r,
+        verificationStatus: r.isBlockchainVerified ? 'verified' : 'unknown',
+      }));
+      setRecords(mapped);
     } catch {
       Alert.alert('Error', 'Failed to load medical records.');
     } finally {
@@ -118,7 +128,10 @@ const MedicalRecordViewerScreen: React.FC<Props> = ({ petId, petName, onBack }) 
         <View style={[styles.typeBadge, typeBadgeColor(item.type)]}>
           <Text style={styles.typeBadgeText}>{item.type}</Text>
         </View>
-        <Text style={styles.cardDate}>{new Date(item.date).toLocaleDateString()}</Text>
+        <View style={styles.cardMetaRow}>
+          <Text style={styles.cardDate}>{new Date(item.date).toLocaleDateString()}</Text>
+          <VerificationBadge status={item.verificationStatus} />
+        </View>
       </View>
       {item.notes ? (
         <Text style={styles.cardNotes} numberOfLines={2}>
@@ -341,11 +354,70 @@ const MedicalRecordViewerScreen: React.FC<Props> = ({ petId, petName, onBack }) 
               {(detailRecord as ExtendedRecord).dosage ? (
                 <DetailRow label="Dosage" value={(detailRecord as ExtendedRecord).dosage!} />
               ) : null}
-              <DetailRow
-                label="Created"
-                value={new Date(detailRecord.createdAt).toLocaleDateString()}
-              />
-            </ScrollView>
+               <DetailRow
+                 label="Created"
+                 value={new Date(detailRecord.createdAt).toLocaleDateString()}
+               />
+
+               {/* ── Blockchain Verification Section ── */}
+               <View style={styles.verificationSection}>
+                 <Text style={styles.verificationTitle}>Blockchain Verification</Text>
+
+                 {/* Status Badge */}
+                 <View style={styles.verificationRow}>
+                   <VerificationBadge status={detailRecord.verificationStatus} />
+                   <Text style={styles.verificationText}>
+                     {detailRecord.verificationStatus === 'verified'
+                       ? 'Record hash matches blockchain. Tamper-evident.'
+                       : detailRecord.verificationStatus === 'failed'
+                       ? 'Hash mismatch — record may have been altered.'
+                       : 'Not yet verified on the blockchain.'}
+                   </Text>
+                 </View>
+
+                 {/* Optional Details */}
+                 {detailRecord.blockchainTxHash ? (
+                   <DetailRow label="Tx Hash" value={detailRecord.blockchainTxHash} />
+                 ) : null}
+                 {detailRecord.verifiedAt ? (
+                   <DetailRow
+                     label="Verified At"
+                     value={new Date(detailRecord.verifiedAt).toLocaleString()}
+                   />
+                 ) : null}
+                 {detailRecord.verificationError ? (
+                   <Text style={styles.errorText}>Error: {detailRecord.verificationError}</Text>
+                 ) : null}
+
+                 {/* Verify Button (if not verified) */}
+                 {detailRecord.verificationStatus !== 'verified' && (
+                   <TouchableOpacity
+                     style={styles.verifyButton}
+                     onPress={async () => {
+                       try {
+                         const result = await verifyRecord(detailRecord);
+                         const updated: MedicalRecord = {
+                           ...detailRecord,
+                           verificationStatus: result.onChainVerified ? 'verified' : 'failed',
+                           blockchainHash: result.onChainHash,
+                           blockchainTxHash: result.txHash,
+                           verifiedAt: new Date().toISOString(),
+                           verificationError: result.onChainVerified ? undefined : 'Hash does not match on-chain record',
+                         };
+                         setDetailRecord(updated);
+                         setRecords((prev) =>
+                           prev.map((r) => (r.id === detailRecord.id ? updated : r)),
+                         );
+                       } catch (err: any) {
+                         Alert.alert('Verification Failed', err.message || 'Could not verify record on blockchain.');
+                       }
+                     }}
+                   >
+                     <Text style={styles.verifyButtonText}>Verify on Blockchain</Text>
+                   </TouchableOpacity>
+                 )}
+               </View>
+             </ScrollView>
           </View>
         </Modal>
       )}
@@ -466,6 +538,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   typeBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   typeBadgeText: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize', color: '#374151' },
   cardDate: { fontSize: 12, color: '#6B7280' },
@@ -523,14 +600,60 @@ const styles = StyleSheet.create({
   resetBtnText: { color: '#6B7280', fontSize: 14 },
   // Detail
   detailBody: { padding: 20 },
-  detailRow: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  detailLabel: { width: 90, fontSize: 13, color: '#6B7280', fontWeight: '600' },
-  detailValue: { flex: 1, fontSize: 14, color: '#111827' },
-});
+   detailRow: {
+     flexDirection: 'row',
+     paddingVertical: 12,
+     borderBottomWidth: 1,
+     borderBottomColor: '#F3F4F6',
+   },
+   detailLabel: { width: 90, fontSize: 13, color: '#6B7280', fontWeight: '600' },
+   detailValue: { flex: 1, fontSize: 14, color: '#111827' },
+
+   // Verification
+   verificationSection: {
+     marginTop: 20,
+     padding: 16,
+     backgroundColor: '#F0F9FF',
+     borderRadius: 12,
+     borderWidth: 1,
+     borderColor: '#B0E0FE',
+   },
+   verificationTitle: {
+     fontSize: 14,
+     fontWeight: '700',
+     color: '#0369A1',
+     marginBottom: 10,
+   },
+   verificationRow: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 10,
+     marginBottom: 12,
+   },
+   verificationText: {
+     flex: 1,
+     fontSize: 13,
+     color: '#0C4A6E',
+     lineHeight: 18,
+   },
+   errorText: {
+     color: '#DC2626',
+     fontSize: 12,
+     marginTop: 6,
+     fontStyle: 'italic',
+   },
+   verifyButton: {
+     backgroundColor: '#4A90A4',
+     paddingVertical: 12,
+     borderRadius: 10,
+     alignItems: 'center',
+     marginTop: 8,
+   },
+   verifyButtonText: {
+     color: '#fff',
+     fontWeight: '700',
+     fontSize: 15,
+   },
+ });
 
 export default MedicalRecordViewerScreen;

@@ -43,6 +43,12 @@ export interface StoredMedicalRecord {
   nextVisitDate?: string;
   createdAt: string;
   updatedAt: string;
+
+  // Blockchain verification fields
+  blockchainTxHash?: string;      // Stellar transaction hash
+  blockchainHash?: string;         // Hash stored on-chain
+  isBlockchainVerified?: boolean; // Verified flag (backend-computed)
+  blockchainVerifiedAt?: string;  // When verification was last performed
 }
 
 export interface StoredAppointment {
@@ -114,21 +120,26 @@ function seed() {
     updatedAt: t,
   });
 
-  const medicalRecords = new Map<string, StoredMedicalRecord>();
-  const mrId = 'mr-demo-1';
-  medicalRecords.set(mrId, {
-    id: mrId,
-    petId,
-    vetId,
-    type: 'vaccination',
-    diagnosis: 'Annual wellness',
-    treatment: 'Rabies vaccine',
-    notes: 'No adverse reaction',
-    visitDate: t.slice(0, 10),
-    nextVisitDate: '2027-01-01',
-    createdAt: t,
-    updatedAt: t,
-  });
+   const medicalRecords = new Map<string, StoredMedicalRecord>();
+   const mrId = 'mr-demo-1';
+   medicalRecords.set(mrId, {
+     id: mrId,
+     petId,
+     vetId,
+     type: 'vaccination',
+     diagnosis: 'Annual wellness',
+     treatment: 'Rabies vaccine',
+     notes: 'No adverse reaction',
+     visitDate: t.slice(0, 10),
+     nextVisitDate: '2027-01-01',
+     createdAt: t,
+     updatedAt: t,
+     // Blockchain fields not set for demo record initially
+     blockchainTxHash: undefined,
+     blockchainHash: undefined,
+     isBlockchainVerified: false,
+     blockchainVerifiedAt: undefined,
+   });
 
   const appointments = new Map<string, StoredAppointment>();
   const apId = 'ap-demo-1';

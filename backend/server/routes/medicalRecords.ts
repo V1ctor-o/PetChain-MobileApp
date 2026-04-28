@@ -21,6 +21,11 @@ function toApiRecord(r: StoredMedicalRecord) {
     nextVisitDate: r.nextVisitDate,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
+    // Blockchain verification fields
+    blockchainTxHash: r.blockchainTxHash,
+    blockchainHash: r.blockchainHash,
+    isBlockchainVerified: r.isBlockchainVerified,
+    blockchainVerifiedAt: r.blockchainVerifiedAt,
   };
 }
 
@@ -130,11 +135,16 @@ router.put('/:id', authorizeRoles(UserRole.ADMIN, UserRole.VET), (req, res) => {
     ...(b.nextVisitDate !== undefined ? { nextVisitDate: b.nextVisitDate } : {}),
     ...(b.vetId !== undefined ? { vetId: String(b.vetId) } : {}),
     ...(b.petId !== undefined ? { petId: String(b.petId) } : {}),
+    // Blockchain verification fields (updatable if provided)
+    ...(b.blockchainTxHash !== undefined ? { blockchainTxHash: b.blockchainTxHash } : {}),
+    ...(b.blockchainHash !== undefined ? { blockchainHash: b.blockchainHash } : {}),
+    ...(b.isBlockchainVerified !== undefined ? { isBlockchainVerified: b.isBlockchainVerified } : {}),
+    ...(b.blockchainVerifiedAt !== undefined ? { blockchainVerifiedAt: b.blockchainVerifiedAt } : {}),
     updatedAt: t,
   };
   store.medicalRecords.set(row.id, next);
   (req as AuditableRequest).audit?.('medical_record.updated', 'medical_record', row.id);
-  return res.json(ok(toApiRecord(next), 'Medical record updated'));
+  return res.json(ok(toApiRecord(next)));
 });
 
 router.delete('/:id', authorizeRoles(UserRole.ADMIN, UserRole.VET), (req: AuthenticatedRequest, res) => {
