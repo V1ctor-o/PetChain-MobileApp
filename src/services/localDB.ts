@@ -28,7 +28,7 @@ async function safeDecrypt<T = string>(
   }
 }
 
-function executeSql(sql: string, params: any[] = []): Promise<SQLite.SQLResultSet> {
+export function executeSql(sql: string, params: any[] = []): Promise<SQLite.SQLResultSet> {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
