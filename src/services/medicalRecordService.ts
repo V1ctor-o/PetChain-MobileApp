@@ -8,6 +8,7 @@ import {
 } from './blockchainService';
 import { getItem, setItem } from './localDB';
 import offlineQueue from './offlineQueue';
+import type { MedicalDocumentMetadata } from '../models/MedicalRecord';
 
 // Types
 export interface MedicalRecord {
@@ -18,14 +19,8 @@ export interface MedicalRecord {
   veterinarian: string;
   notes: string;
   createdAt: string;
-  // Optional blockchain verification fields (populated from backend if available)
-  blockchainTxHash?: string;
-  blockchainHash?: string;
-  isBlockchainVerified?: boolean;
-  blockchainVerifiedAt?: string;
-  // Computed client-side verification status
-  verificationStatus?: 'pending' | 'verified' | 'failed' | 'unknown';
-  verificationError?: string;
+  nextVisitDate?: string;
+  documents?: MedicalDocumentMetadata[];
 }
 
 export interface Vaccination extends MedicalRecord {

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import MedicalRecordAttachments from '../components/MedicalRecordAttachments';
 import {
   getMedicalRecords,
   searchMedicalRecords,
@@ -122,25 +123,30 @@ const MedicalRecordViewerScreen: React.FC<Props> = ({ petId, petName, onBack }) 
 
   // ─── Render helpers ──────────────────────────────────────────────────────────
 
-  const renderItem = useCallback(({ item }: { item: MedicalRecord }) => (
-    <TouchableOpacity style={styles.card} onPress={() => setDetailRecord(item)}>
-      <View style={styles.cardRow}>
-        <View style={[styles.typeBadge, typeBadgeColor(item.type)]}>
-          <Text style={styles.typeBadgeText}>{item.type}</Text>
-        </View>
-        <View style={styles.cardMetaRow}>
+  const renderItem = useCallback(
+    ({ item }: { item: MedicalRecord }) => (
+      <TouchableOpacity style={styles.card} onPress={() => setDetailRecord(item)}>
+        <View style={styles.cardRow}>
+          <View style={[styles.typeBadge, typeBadgeColor(item.type)]}>
+            <Text style={styles.typeBadgeText}>{item.type}</Text>
+          </View>
           <Text style={styles.cardDate}>{new Date(item.date).toLocaleDateString()}</Text>
-          <VerificationBadge status={item.verificationStatus} />
         </View>
-      </View>
-      {item.notes ? (
-        <Text style={styles.cardNotes} numberOfLines={2}>
-          {item.notes}
-        </Text>
-      ) : null}
-      {item.veterinarian ? <Text style={styles.cardMeta}>Vet: {item.veterinarian}</Text> : null}
-    </TouchableOpacity>
-  ), []);
+        {item.notes ? (
+          <Text style={styles.cardNotes} numberOfLines={2}>
+            {item.notes}
+          </Text>
+        ) : null}
+        {item.veterinarian ? <Text style={styles.cardMeta}>Vet: {item.veterinarian}</Text> : null}
+        {item.documents?.length ? (
+          <Text style={styles.cardMeta}>
+            {item.documents.length} attachment{item.documents.length === 1 ? '' : 's'}
+          </Text>
+        ) : null}
+      </TouchableOpacity>
+    ),
+    [],
+  );
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -324,100 +330,47 @@ const MedicalRecordViewerScreen: React.FC<Props> = ({ petId, petName, onBack }) 
               <View style={{ width: 50 }} />
             </View>
             <ScrollView contentContainerStyle={styles.detailBody}>
-              <DetailRow label="Type" value={detailRecord.type} />
-              <DetailRow label="Date" value={new Date(detailRecord.date).toLocaleDateString()} />
-              {detailRecord.veterinarian ? (
-                <DetailRow label="Vet" value={detailRecord.veterinarian} />
-              ) : null}
-              {detailRecord.notes ? <DetailRow label="Notes" value={detailRecord.notes} /> : null}
-              {detailRecord.nextDueDate ? (
-                <DetailRow
-                  label="Next Due"
-                  value={new Date(detailRecord.nextDueDate).toLocaleDateString()}
-                />
-              ) : null}
-              {(detailRecord as ExtendedRecord).vaccineName ? (
-                <DetailRow label="Vaccine" value={(detailRecord as ExtendedRecord).vaccineName!} />
-              ) : null}
-              {(detailRecord as ExtendedRecord).treatmentName ? (
-                <DetailRow
-                  label="Treatment"
-                  value={(detailRecord as ExtendedRecord).treatmentName!}
-                />
-              ) : null}
-              {(detailRecord as ExtendedRecord).medication ? (
-                <DetailRow
-                  label="Medication"
-                  value={(detailRecord as ExtendedRecord).medication!}
-                />
-              ) : null}
-              {(detailRecord as ExtendedRecord).dosage ? (
-                <DetailRow label="Dosage" value={(detailRecord as ExtendedRecord).dosage!} />
-              ) : null}
-               <DetailRow
-                 label="Created"
-                 value={new Date(detailRecord.createdAt).toLocaleDateString()}
-               />
+              {(() => {
+                const record = detailRecord as ExtendedRecord;
 
-               {/* ── Blockchain Verification Section ── */}
-               <View style={styles.verificationSection}>
-                 <Text style={styles.verificationTitle}>Blockchain Verification</Text>
-
-                 {/* Status Badge */}
-                 <View style={styles.verificationRow}>
-                   <VerificationBadge status={detailRecord.verificationStatus} />
-                   <Text style={styles.verificationText}>
-                     {detailRecord.verificationStatus === 'verified'
-                       ? 'Record hash matches blockchain. Tamper-evident.'
-                       : detailRecord.verificationStatus === 'failed'
-                       ? 'Hash mismatch — record may have been altered.'
-                       : 'Not yet verified on the blockchain.'}
-                   </Text>
-                 </View>
-
-                 {/* Optional Details */}
-                 {detailRecord.blockchainTxHash ? (
-                   <DetailRow label="Tx Hash" value={detailRecord.blockchainTxHash} />
-                 ) : null}
-                 {detailRecord.verifiedAt ? (
-                   <DetailRow
-                     label="Verified At"
-                     value={new Date(detailRecord.verifiedAt).toLocaleString()}
-                   />
-                 ) : null}
-                 {detailRecord.verificationError ? (
-                   <Text style={styles.errorText}>Error: {detailRecord.verificationError}</Text>
-                 ) : null}
-
-                 {/* Verify Button (if not verified) */}
-                 {detailRecord.verificationStatus !== 'verified' && (
-                   <TouchableOpacity
-                     style={styles.verifyButton}
-                     onPress={async () => {
-                       try {
-                         const result = await verifyRecord(detailRecord);
-                         const updated: MedicalRecord = {
-                           ...detailRecord,
-                           verificationStatus: result.onChainVerified ? 'verified' : 'failed',
-                           blockchainHash: result.onChainHash,
-                           blockchainTxHash: result.txHash,
-                           verifiedAt: new Date().toISOString(),
-                           verificationError: result.onChainVerified ? undefined : 'Hash does not match on-chain record',
-                         };
-                         setDetailRecord(updated);
-                         setRecords((prev) =>
-                           prev.map((r) => (r.id === detailRecord.id ? updated : r)),
-                         );
-                       } catch (err: any) {
-                         Alert.alert('Verification Failed', err.message || 'Could not verify record on blockchain.');
-                       }
-                     }}
-                   >
-                     <Text style={styles.verifyButtonText}>Verify on Blockchain</Text>
-                   </TouchableOpacity>
-                 )}
-               </View>
-             </ScrollView>
+                return (
+                  <>
+                    <DetailRow label="Type" value={detailRecord.type} />
+                    <DetailRow
+                      label="Date"
+                      value={new Date(detailRecord.date).toLocaleDateString()}
+                    />
+                    {detailRecord.veterinarian ? (
+                      <DetailRow label="Vet" value={detailRecord.veterinarian} />
+                    ) : null}
+                    {detailRecord.notes ? (
+                      <DetailRow label="Notes" value={detailRecord.notes} />
+                    ) : null}
+                    {detailRecord.nextVisitDate ? (
+                      <DetailRow
+                        label="Next Due"
+                        value={new Date(detailRecord.nextVisitDate).toLocaleDateString()}
+                      />
+                    ) : null}
+                    {record.vaccineName ? (
+                      <DetailRow label="Vaccine" value={record.vaccineName} />
+                    ) : null}
+                    {record.treatmentName ? (
+                      <DetailRow label="Treatment" value={record.treatmentName} />
+                    ) : null}
+                    {record.medication ? (
+                      <DetailRow label="Medication" value={record.medication} />
+                    ) : null}
+                    {record.dosage ? <DetailRow label="Dosage" value={record.dosage} /> : null}
+                    <MedicalRecordAttachments documents={detailRecord.documents} />
+                    <DetailRow
+                      label="Created"
+                      value={new Date(detailRecord.createdAt).toLocaleDateString()}
+                    />
+                  </>
+                );
+              })()}
+            </ScrollView>
           </View>
         </Modal>
       )}
