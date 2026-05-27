@@ -34,6 +34,7 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier:
         APP_ENV === 'production' ? 'app.petchain.mobile' : `app.petchain.mobile.${APP_ENV}`,
+      associatedDomains: ['applinks:petchain.app'],
       buildNumber: String(VERSION_CODE),
       infoPlist: {
         NSCameraUsageDescription:
@@ -58,6 +59,14 @@ module.exports = {
       },
       package: APP_ENV === 'production' ? 'app.petchain.mobile' : `app.petchain.mobile.${APP_ENV}`,
       versionCode: VERSION_CODE,
+      intentFilters: [
+        {
+          action: 'VIEW',
+          autoVerify: true,
+          data: [{ scheme: 'https', host: 'petchain.app', pathPrefix: '/' }],
+          category: ['BROWSABLE', 'DEFAULT'],
+        },
+      ],
       permissions: [
         'CAMERA',
         'ACCESS_FINE_LOCATION',
