@@ -83,8 +83,7 @@
       "^expo-constants$": "<rootDir>/src/__mocks__/expo-constants.ts",
       "^expo-sqlite$": "<rootDir>/src/__mocks__/expo-sqlite.ts",
       "^expo-notifications$": "<rootDir>/src/__mocks__/expo-notifications.ts",
-      "^expo-secure-store$": "<rootDir>/src/__mocks__/expo-secure-store.ts",
-      "^@sentry/react-native$": "<rootDir>/src/__mocks__/@sentry/react-native.ts"
+      "^expo-secure-store$": "<rootDir>/src/__mocks__/expo-secure-store.ts"
     },
     "collectCoverageFrom": [
       "src/**/*.ts",
@@ -108,9 +107,9 @@
     "axios": "^1.15.2",
     "crypto-js": "^4.2.0",
     "expo-barcode-scanner": "^13.0.1",
+    "expo-image-manipulator": "^13.0.6",
     "expo-camera": "^55.0.16",
     "expo-constants": "^18.0.13",
-    "expo-image-manipulator": "^13.0.6",
     "expo-notifications": "^0.31.1",
     "expo-screen-capture": "^55.0.13",
     "expo-secure-store": "^14.0.1",
@@ -119,16 +118,18 @@
     "expo-updates": "^0.26.0",
     "express": "^5.2.1",
     "graphql": "^16.0.0",
-    "helmet": "^8.0.0",
     "i18next": "^26.0.8",
     "jsonwebtoken": "^9.0.3",
+    "pdf-parse": "^1.1.1",
     "react-i18next": "^17.0.6",
     "react-native-image-picker": "^7.0.0",
+    "react-native-webrtc": "^124.0.3",
     "react-native-image-resizer": "^1.4.5",
     "react-native-keychain": "^10.0.0",
     "react-native-ssl-pinning": "^1.5.3",
-    "react-native-webrtc": "^124.0.3",
-    "swagger-ui-express": "^5.0.1"
+    "helmet": "^8.0.0",
+    "swagger-ui-express": "^5.0.1",
+    "tesseract.js": "^5.0.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.29.7",
@@ -143,9 +144,9 @@
     "@storybook/react-native": "^8.6.0",
     "@types/connect-redis": "^0.0.23",
     "@types/cors": "^2.8.19",
+    "@types/helmet": "^0.0.48",
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
-    "@types/helmet": "^0.0.48",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@types/pg": "^8.20.0",
