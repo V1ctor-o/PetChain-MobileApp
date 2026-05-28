@@ -27,6 +27,7 @@ import PetHealthDashboardScreen from '../screens/PetHealthDashboardScreen';
 import PetHealthMetricsScreen from '../screens/PetHealthMetricsScreen';
 import PetListScreen from '../screens/PetListScreen';
 import PetShareScreen from '../screens/PetShareScreen';
+import TravelCertificateScreen from '../screens/TravelCertificateScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import QRScannerScreen from '../screens/QRScannerScreen';
 import analyticsService from '../services/analyticsService';
@@ -114,6 +115,15 @@ function PetNavigator() {
       <PetStack.Screen name="PetShare" options={{ title: 'Share Pet Profile' }}>
         {({ route, navigation }) => (
           <PetShareScreen
+            petId={route.params.petId}
+            petName={route.params.petName}
+            onBack={() => navigation.goBack()}
+          />
+        )}
+      </PetStack.Screen>
+      <PetStack.Screen name="TravelCertificate" options={{ title: 'Travel Health Certificate' }}>
+        {({ route, navigation }) => (
+          <TravelCertificateScreen
             petId={route.params.petId}
             petName={route.params.petName}
             onBack={() => navigation.goBack()}

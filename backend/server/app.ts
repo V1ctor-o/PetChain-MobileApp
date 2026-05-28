@@ -21,6 +21,7 @@ import petsRouter from './routes/pets';
 import privacyRouter from './routes/privacy';
 import searchRouter from './routes/search';
 import syncRouter from './routes/sync';
+import travelCertificatesRouter from './routes/travelCertificates';
 import usersRouter from './routes/users';
 import vetsRouter from './routes/vets';
 import { attachAudit } from '../middleware/auditLog';
@@ -80,6 +81,7 @@ export function createApp(): Express {
   api.use('/community', communityRouter);
   api.use('/photos', photosRouter);
   api.use('/sync', syncRouter);
+  api.use('/travel-certificates', travelCertificatesRouter);
   api.use('/vets', vetsRouter);
   api.use('/privacy', privacyRouter);
   api.use('/insurance', insuranceRouter);
