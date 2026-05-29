@@ -63,8 +63,24 @@ export type NotificationGroup =
   | 'appointment'
   | 'vaccination'
   | 'alert'
-  | 'scheduled';
+  | 'scheduled'
+  | 'sos';
 export type NotificationAction = 'open' | 'snooze' | 'mark_as_read';
+
+// ─── Deep Link Navigation Types ───────────────────────────────────────────────
+export interface DeepLinkParams {
+  route: string;
+  params?: Record<string, any>;
+}
+
+export interface NotificationDeepLink {
+  petId?: string;
+  medicationId?: string;
+  appointmentId?: string;
+  vaccinationId?: string;
+  sosId?: string;
+  [key: string]: any;
+}
 
 export const NOTIFICATION_CATEGORIES: NotificationCategory[] = [
   'medication',
@@ -149,8 +165,22 @@ const getNotificationUrl = (data: Record<string, unknown> = {}): string => {
   if (typeof deepLink === 'string' && deepLink.length > 0) return deepLink;
 
   if (typeof data.petId === 'string') return `petchain://pets/${encodeURIComponent(data.petId)}`;
+  if (data.type === 'medication' && typeof data.medicationId === 'string') {
+    return `petchain://medications?medicationId=${encodeURIComponent(data.medicationId)}`;
+  }
+  if (data.type === 'appointment' && typeof data.appointmentId === 'string') {
+    return `petchain://appointments?appointmentId=${encodeURIComponent(data.appointmentId)}`;
+  }
+  if (data.type === 'vaccination' && typeof data.vaccinationId === 'string') {
+    return `petchain://vaccinations?vaccinationId=${encodeURIComponent(data.vaccinationId)}`;
+  }
+  if (data.type === 'sos' && typeof data.sosId === 'string') {
+    return `petchain://emergency?sosId=${encodeURIComponent(data.sosId)}`;
+  }
   if (data.type === 'medication') return 'petchain://medications';
   if (data.type === 'appointment') return 'petchain://appointments';
+  if (data.type === 'vaccination') return 'petchain://vaccinations';
+  if (data.type === 'sos') return 'petchain://emergency';
 
   return 'petchain://';
 };
@@ -220,6 +250,72 @@ export const snooze = async (
 export const openApp = async (notification: Notifications.Notification): Promise<void> => {
   await markAsRead(notification.request.identifier);
   await Linking.openURL(getNotificationUrl(notification.request.content.data));
+};
+
+// ─── Deep Link Builders ───────────────────────────────────────────────────────
+
+/**
+ * Extract deep link parameters from notification data
+ */
+export const extractDeepLinkParams = (
+  data: Record<string, unknown>,
+): { route: string; params: Record<string, any> } | null => {
+  const type = data.type as NotificationGroup | undefined;
+
+  if (type === 'medication' && data.medicationId) {
+    return {
+      route: 'Medications',
+      params: { medicationId: data.medicationId },
+    };
+  }
+
+  if (type === 'appointment' && data.appointmentId) {
+    return {
+      route: 'Appointments',
+      params: { appointmentId: data.appointmentId },
+    };
+  }
+
+  if (type === 'vaccination' && data.vaccinationId) {
+    const params: Record<string, any> = { vaccinationId: data.vaccinationId };
+    if (data.petId) params.petId = data.petId;
+    if (data.dueDate) params.dueDate = data.dueDate;
+    return {
+      route: 'Vaccinations',
+      params,
+    };
+  }
+
+  if (type === 'sos' && data.sosId) {
+    return {
+      route: 'Emergency',
+      params: { sosId: data.sosId },
+    };
+  }
+
+  // Fallback to petId if available
+  if (data.petId) {
+    return {
+      route: 'PetDetail',
+      params: { petId: data.petId },
+    };
+  }
+
+  // Type-based fallback without specific ID
+  if (type === 'medication') {
+    return { route: 'Medications', params: {} };
+  }
+  if (type === 'appointment') {
+    return { route: 'Appointments', params: {} };
+  }
+  if (type === 'vaccination') {
+    return { route: 'Vaccinations', params: {} };
+  }
+  if (type === 'sos') {
+    return { route: 'Emergency', params: {} };
+  }
+
+  return null;
 };
 
 export const handleNotificationAction = async (

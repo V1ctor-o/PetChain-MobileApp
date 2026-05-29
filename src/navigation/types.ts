@@ -21,12 +21,12 @@ export type RootStackParamList = {
 // ─── Main Tab ─────────────────────────────────────────────────────────────────
 export type MainTabParamList = {
   PetList: undefined;
-  Medications: undefined;
-  Appointments: undefined;
-  Vaccinations: undefined;
+  Medications: { medicationId?: string };
+  Appointments: { appointmentId?: string };
+  Vaccinations: { vaccinationId?: string; petId?: string; dueDate?: string };
   Telemedicine: undefined;
   Community: undefined;
-  Emergency: undefined;
+  Emergency: { sosId?: string };
   Profile: undefined;
 };
 

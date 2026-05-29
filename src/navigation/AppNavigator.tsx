@@ -3,11 +3,13 @@ import { NavigationContainer, type LinkingOptions } from '@react-navigation/nati
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { StatusBar } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 import { useNavigationTheme } from '../theme';
 import type { RootStackParamList, MainTabParamList, PetStackParamList } from './types';
 import { DEEP_LINK_PREFIX } from './types';
 import type { Pet } from '../models/Pet';
+import { extractDeepLinkParams } from '../services/notificationService';
 import AppointmentScreen from '../screens/AppointmentScreen';
 import AuditHistoryScreen from '../screens/AuditHistoryScreen';
 import AuthNavigator from '../screens/AuthNavigator';
@@ -251,11 +253,11 @@ const linking: LinkingOptions<RootStackParamList> = {
               NearbyVet: 'nearby-vets',
             },
           },
-          Medications: 'medications',
-          Appointments: 'appointments',
-          Vaccinations: 'vaccinations',
+          Medications: 'medications/:medicationId?',
+          Appointments: 'appointments/:appointmentId?',
+          Vaccinations: 'vaccinations/:vaccinationId?',
           Community: 'community',
-          Emergency: 'emergency',
+          Emergency: 'emergency/:sosId?',
           Profile: 'profile',
         },
       },
@@ -267,6 +269,46 @@ const linking: LinkingOptions<RootStackParamList> = {
 };
 
 // ─── Root Navigator ───────────────────────────────────────────────────────────
+export const navigationRef = React.createRef<
+  Parameters<typeof NavigationContainer>[0]['ref'] & {
+    getCurrentRoute?: () => { name?: string } | undefined;
+  }
+>();
+
+/**
+ * Handle notification deep linking
+ * Navigates to the appropriate screen based on notification data
+ */
+export const handleNotificationDeepLink = (data: Record<string, unknown>): void => {
+  if (!navigationRef.current) return;
+
+  const deepLink = extractDeepLinkParams(data);
+  if (!deepLink) return;
+
+  // Get the current state to know if we're in the Main tab
+  const nav = navigationRef.current;
+
+  // Navigate to the appropriate tab/screen
+  const state = (nav as any)?.getRootState?.();
+  const isMainScreen = state?.routes?.[0]?.name === 'Main';
+
+  if (isMainScreen) {
+    // We're in Main, navigate within tabs
+    const mainState = state?.routes?.[0]?.state;
+    (nav as any)?.navigate?.('Main', {
+      screen: deepLink.route,
+      params: deepLink.params,
+    });
+  } else {
+    // App might be in cold start, navigate to Main first
+    (nav as any)?.navigate?.('Main', {
+      screen: deepLink.route,
+      params: deepLink.params,
+    });
+  }
+};
+
+// ─── Root Navigator ───────────────────────────────────────────────────────────
 export default function AppNavigator() {
   const navRef = React.useRef<
     Parameters<typeof NavigationContainer>[0] & {
@@ -274,8 +316,25 @@ export default function AppNavigator() {
     }
   >(null);
 
+  // Set the ref for external use (e.g., from App.tsx)
+  React.useEffect(() => {
+    if (navRef.current) {
+      Object.assign(navigationRef, navRef);
+    }
+  }, []);
+
   const navTheme = useNavigationTheme();
   const currentScreenSpan = React.useRef<ReturnType<typeof performance.startSpan> | undefined>();
+
+  // Listen for notification responses (taps) with deep linking
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data;
+      handleNotificationDeepLink(data);
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   return (
     <>
