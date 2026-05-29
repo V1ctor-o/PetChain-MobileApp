@@ -25,6 +25,7 @@ import paymentsRouter from './routes/payments';
 import petsRouter from './routes/pets';
 import photosRouter from './routes/photos';
 import privacyRouter from './routes/privacy';
+import reportsRouter from './routes/reports';
 import searchRouter from './routes/search';
 import syncRouter from './routes/sync';
 import travelCertificatesRouter from './routes/travelCertificates';
@@ -97,6 +98,7 @@ export function createApp(): Express {
   api.use('/forum', forumRouter);
   api.use('/photos', photosRouter);
   api.use('/breeds', breedsRouter);
+  api.use('/reports', reportsRouter);
   api.use('/sync', syncRouter);
   api.use('/travel-certificates', travelCertificatesRouter);
   api.use('/vets', vetsRouter);
