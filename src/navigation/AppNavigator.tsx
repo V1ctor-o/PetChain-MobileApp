@@ -35,6 +35,7 @@ import QRScannerScreen from '../screens/QRScannerScreen';
 import VaccinationScreen from '../screens/VaccinationScreen';
 import TelemedicineScreen from '../screens/TelemedicineScreen';
 import analyticsService from '../services/analyticsService';
+import performance from '../utils/performance';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -268,6 +269,7 @@ export default function AppNavigator() {
   >(null);
 
   const navTheme = useNavigationTheme();
+  const currentScreenSpan = React.useRef<ReturnType<typeof performance.startSpan> | undefined>();
 
   return (
     <>
@@ -283,7 +285,20 @@ export default function AppNavigator() {
           const route = (
             navRef.current as { getCurrentRoute?: () => { name?: string } | undefined } | null
           )?.getCurrentRoute?.();
-          if (route?.name) analyticsService.screenView(route.name);
+          const name = route?.name;
+          // finish previous span
+          try {
+            performance.finishSpan(currentScreenSpan.current);
+          } catch (e) {
+            // ignore
+          }
+
+          if (name) {
+            analyticsService.screenView(name);
+            // start new screen span
+            currentScreenSpan.current = performance.startSpan(`screen:${name}`);
+            performance.recordMetric('screen.render_start', Date.now(), { screen: name });
+          }
         }}
       >
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
