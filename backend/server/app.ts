@@ -23,6 +23,7 @@ import privacyRouter from './routes/privacy';
 import reportsRouter from './routes/reports';
 import searchRouter from './routes/search';
 import syncRouter from './routes/sync';
+import reconciliationRouter from './routes/reconciliation';
 import usersRouter from './routes/users';
 import vetsRouter from './routes/vets';
 import { attachAudit } from '../middleware/auditLog';
@@ -85,6 +86,7 @@ export function createApp(): Express {
   api.use('/photos', photosRouter);
   api.use('/reports', reportsRouter);
   api.use('/sync', syncRouter);
+  api.use('/reconciliation', reconciliationRouter);
   api.use('/vets', vetsRouter);
   api.use('/privacy', privacyRouter);
   api.use('/insurance', insuranceRouter);
