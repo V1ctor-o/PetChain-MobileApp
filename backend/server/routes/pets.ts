@@ -4,7 +4,12 @@ import crypto from 'crypto';
 import express from 'express';
 
 import { authenticateJWT, type AuthenticatedRequest } from '../../middleware/auth';
+import {
+  petProfileCacheMiddleware,
+  petsByOwnerCacheMiddleware,
+} from '../../middleware/cacheMiddleware';
 import { UserRole } from '../../models/UserRole';
+import { invalidatePet } from '../../services/cacheService';
 import { petRepository } from '../../src/repositories/petRepository';
 import { type DBPet } from '../../src/repositories/petRepository';
 import { userRepository } from '../../src/repositories/userRepository';
@@ -134,7 +139,7 @@ router.get('/identity/:token/view', async (req, res) => {
 // All routes below require authentication
 router.use(authenticateJWT);
 
-router.get('/owner/:ownerId', (req: AuthenticatedRequest, res) => {
+router.get('/owner/:ownerId', petsByOwnerCacheMiddleware(), (req: AuthenticatedRequest, res) => {
   // Only admin or the owner themselves can see their pets
   if (req.user!.role !== UserRole.ADMIN && req.user!.id !== req.params.ownerId) {
     return sendError(res, 403, 'FORBIDDEN', 'You do not have permission to view these pets');
@@ -222,7 +227,7 @@ router.get('/:petId/medical-records', (req: AuthenticatedRequest, res) => {
   });
 });
 
-router.get('/', (req: AuthenticatedRequest, res) => {
+router.get('/', petsByOwnerCacheMiddleware(), (req: AuthenticatedRequest, res) => {
   const ownerId = (req.query as Record<string, string | undefined>).ownerId;
 
   // If ownerId is provided, filter. Otherwise, only admin/vet can see all pets.
@@ -239,7 +244,7 @@ router.get('/', (req: AuthenticatedRequest, res) => {
   return res.json(ok(list.map(toPetResponse)));
 });
 
-router.get('/:id', (req: AuthenticatedRequest, res) => {
+router.get('/:id', petProfileCacheMiddleware(), (req: AuthenticatedRequest, res) => {
   const pet = store.pets.get(req.params.id);
   if (!pet) return sendError(res, 404, 'NOT_FOUND', 'Pet not found');
 
@@ -285,6 +290,8 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     owner_id: ownerId.trim(),
   });
 
+  await invalidatePet(pet.id, pet.owner_id);
+  await invalidatePet(pet.id, pet.owner_id);
   return res.status(201).json(ok(await toPetResponse(pet), 'Pet created'));
 });
 
