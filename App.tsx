@@ -15,6 +15,7 @@ import {
   getLockTimeoutMs,
 } from './src/services/appLockService';
 import crashReporting from './src/services/crashReporting';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import {
   registerNotificationActions,
   watchNotificationActions,
@@ -93,17 +94,19 @@ function App() {
 
   return (
     <PetProvider>
-      <View style={styles.root}>
-        <OfflineIndicator />
-        <AppNavigator />
-        <UpdatePrompt
-          visible={updateStatus.visible}
-          variant={updateStatus.visible ? updateStatus.variant : 'optional'}
-          storeUrl={updateStatus.visible ? updateStatus.storeUrl : undefined}
-          onUpdate={handleUpdate}
-          onDismiss={handleDismiss}
-        />
-      </View>
+      <ErrorBoundary>
+        <View style={styles.root}>
+          <OfflineIndicator />
+          <AppNavigator />
+          <UpdatePrompt
+            visible={updateStatus.visible}
+            variant={updateStatus.visible ? updateStatus.variant : 'optional'}
+            storeUrl={updateStatus.visible ? updateStatus.storeUrl : undefined}
+            onUpdate={handleUpdate}
+            onDismiss={handleDismiss}
+          />
+        </View>
+      </ErrorBoundary>
     </PetProvider>
   );
 }
