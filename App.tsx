@@ -27,7 +27,7 @@ import updateService from './src/services/updateService';
 const isStorybookEnabled = process.env.STORYBOOK_ENABLED === 'true';
 
 // Initialise Sentry before the first render
-crashReporting.init();
+errorTracking.init();
 
 // Apply RTL direction based on the active language at startup
 const startupRTL = isRTL(i18n.language);
