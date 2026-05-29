@@ -36,6 +36,7 @@ import QRScannerScreen from '../screens/QRScannerScreen';
 import VaccinationScreen from '../screens/VaccinationScreen';
 import TelemedicineScreen from '../screens/TelemedicineScreen';
 import ForumScreen from '../screens/ForumScreen';
+import FiatOnRampScreen from '../screens/FiatOnRampScreen';
 import analyticsService from '../services/analyticsService';
 import performance from '../utils/performance';
 
@@ -352,6 +353,11 @@ export default function AppNavigator() {
               name="Payment"
               component={PaymentScreen}
               options={{ headerShown: true, title: 'Premium Plans' }}
+            />
+            <RootStack.Screen
+              name="FiatOnRamp"
+              component={FiatOnRampScreen}
+              options={{ headerShown: true, title: 'Fund Your Wallet' }}
             />
           </RootStack.Group>
         </RootStack.Navigator>

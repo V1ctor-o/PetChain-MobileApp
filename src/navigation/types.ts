@@ -15,6 +15,7 @@ export type RootStackParamList = {
   ManualEntry: undefined;
   // Future: Payment / Subscription
   Payment: { planId?: string };
+  FiatOnRamp: undefined;
 };
 
 // ─── Main Tab ─────────────────────────────────────────────────────────────────

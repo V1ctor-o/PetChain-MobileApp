@@ -12,6 +12,7 @@ import authRouter from './routes/auth';
 import { requestLogger } from '../middleware/requestLogger';
 import logger from '../utils/logger';
 import { getCacheMetrics, warmCache } from '../services/cacheService';
+import anchorRouter from '../src/routes/anchor';
 import analyticsRouter from './routes/analytics';
 import performanceLogger from '../middleware/performanceLogger';
 import appointmentsRouter from './routes/appointments';
@@ -100,6 +101,7 @@ export function createApp(): Express {
   // --- Application routes ------------------------------------------------
   api.use('/auth', authRouter);
   api.use('/analytics', analyticsRouter);
+  api.use('/anchor', anchorRouter);
   api.use('/backups', backupsRouter);
   api.use('/federation', federationRouter);
   api.use('/users', usersRouter);
