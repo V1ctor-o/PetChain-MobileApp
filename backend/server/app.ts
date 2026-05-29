@@ -44,6 +44,7 @@ import vetsRouter from './routes/vets';
 import vitalsRouter from './routes/vitals';
 import { attachAudit } from '../middleware/auditLog';
 import federationRouter from '../src/routes/federation';
+import { authRateLimiter, dataRateLimiter } from '../middleware/rateLimiter';
 
 // Readiness probe state — set to false while the process is draining
 let isReady = true;
@@ -99,36 +100,36 @@ export function createApp(): Express {
   });
 
   // --- Application routes ------------------------------------------------
-  api.use('/auth', authRouter);
-  api.use('/analytics', analyticsRouter);
+  api.use('/auth', authRateLimiter, authRouter);
+  api.use('/analytics', dataRateLimiter, analyticsRouter);
   api.use('/anchor', anchorRouter);
-  api.use('/backups', backupsRouter);
+  api.use('/backups', dataRateLimiter, backupsRouter);
   api.use('/federation', federationRouter);
-  api.use('/users', usersRouter);
-  api.use('/pets', petsRouter);
-  api.use('/medical-records', medicalRecordsRouter);
-  api.use('/appointments', appointmentsRouter);
+  api.use('/users', authRateLimiter, usersRouter);
+  api.use('/pets', dataRateLimiter, petsRouter);
+  api.use('/medical-records', dataRateLimiter, medicalRecordsRouter);
+  api.use('/appointments', dataRateLimiter, appointmentsRouter);
   api.use('/telemedicine', telemedicineRouter);
-  api.use('/medications', medicationsRouter);
+  api.use('/medications', dataRateLimiter, medicationsRouter);
   api.use('/vaccinations', vaccinationsRouter);
-  api.use('/import', importRouter);
-  api.use('/payments', paymentsRouter);
-  api.use('/audit-logs', auditLogsRouter);
+  api.use('/import', dataRateLimiter, importRouter);
+  api.use('/payments', dataRateLimiter, paymentsRouter);
+  api.use('/audit-logs', dataRateLimiter, auditLogsRouter);
   api.use('/audit-trail', auditTrailRouter);
   api.use('/docs', docsRouter);
-  api.use('/emergency', emergencyRouter);
-  api.use('/community', communityRouter);
+  api.use('/emergency', dataRateLimiter, emergencyRouter);
+  api.use('/community', dataRateLimiter, communityRouter);
   api.use('/forum', forumRouter);
-  api.use('/photos', photosRouter);
+  api.use('/photos', dataRateLimiter, photosRouter);
   api.use('/breeds', breedsRouter);
   api.use('/reports', reportsRouter);
-  api.use('/sync', syncRouter);
+  api.use('/sync', dataRateLimiter, syncRouter);
   api.use('/travel-certificates', travelCertificatesRouter);
   api.use('/reconciliation', reconciliationRouter);
-  api.use('/vets', vetsRouter);
-  api.use('/privacy', privacyRouter);
-  api.use('/insurance', insuranceRouter);
-  api.use('/search', searchRouter);
+  api.use('/vets', dataRateLimiter, vetsRouter);
+  api.use('/privacy', dataRateLimiter, privacyRouter);
+  api.use('/insurance', dataRateLimiter, insuranceRouter);
+  api.use('/search', dataRateLimiter, searchRouter);
   api.use('/vitals', vitalsRouter);
 
   app.use('/api', api);
