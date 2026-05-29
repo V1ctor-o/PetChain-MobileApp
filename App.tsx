@@ -22,6 +22,8 @@ import {
   watchNotificationActions,
 } from './src/services/notificationService';
 import updateService from './src/services/updateService';
+import { registerBackgroundMedicationTask } from './src/services/backgroundTaskService';
+import { checkAppVersion } from './src/services/versionCheckService';
 
 const isStorybookEnabled = process.env.STORYBOOK_ENABLED === 'true';
 
@@ -66,6 +68,18 @@ function App() {
   React.useEffect(() => {
     if (!appReady) return;
     void (async () => {
+      // 1. Check server-side minimum version (critical/recommended)
+      const versionResult = await checkAppVersion();
+      if (versionResult.type === 'critical') {
+        setUpdateStatus({ visible: true, variant: 'force', storeUrl: versionResult.storeUrl });
+        return; // no need to check OTA if a store update is required
+      }
+      if (versionResult.type === 'recommended') {
+        setUpdateStatus({ visible: true, variant: 'optional', storeUrl: versionResult.storeUrl });
+        return;
+      }
+
+      // 2. Fall back to OTA check via expo-updates
       const result = await updateService.checkForUpdate();
       if (result.type === 'force-update') {
         setUpdateStatus({ visible: true, variant: 'force', storeUrl: result.storeUrl });
@@ -86,6 +100,7 @@ function App() {
   useEffect(() => {
     void registerNotificationActions();
     const subscription = watchNotificationActions();
+    void registerBackgroundMedicationTask();
     return () => subscription.remove();
   }, []);
 

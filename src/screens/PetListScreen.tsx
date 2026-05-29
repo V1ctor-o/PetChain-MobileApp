@@ -55,13 +55,14 @@ const PetListScreen: React.FC<Props> = ({ onSelectPet, onAddPet }) => {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: Pet }) => (
+    ({ item, index }: { item: Pet; index: number }) => (
       <TouchableOpacity
         style={styles.card}
         onPress={() => onSelectPet(item)}
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${item.species}`}
         accessibilityHint="Opens pet details"
+        testID={`pet-list-item-${index}`}
       >
         {item.photoUrl || item.thumbnailUrl ? (
           <OptimizedImage
@@ -94,7 +95,7 @@ const PetListScreen: React.FC<Props> = ({ onSelectPet, onAddPet }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="pet-list-screen">
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>My Pets</Text>
@@ -106,6 +107,7 @@ const PetListScreen: React.FC<Props> = ({ onSelectPet, onAddPet }) => {
           accessibilityRole="button"
           accessibilityLabel="Add pet"
           accessibilityHint="Adds a new pet"
+          testID="add-pet-button"
         >
           <Text style={styles.addBtnText}>+ Add</Text>
         </TouchableOpacity>

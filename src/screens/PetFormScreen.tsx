@@ -176,8 +176,7 @@ const PetFormScreen: React.FC<Props> = ({ pet, ownerId = '', onBack, onSaved }) 
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <View style={styles.container} testID="pet-form-screen">
       <View style={styles.header}>
         <TouchableOpacity
           onPress={onBack}
@@ -194,6 +193,7 @@ const PetFormScreen: React.FC<Props> = ({ pet, ownerId = '', onBack, onSaved }) 
           disabled={saving}
           accessibilityRole="button"
           accessibilityLabel={isEdit ? 'Save changes' : 'Save pet'}
+          testID="pet-form-save-button"
         >
           <Text style={styles.saveBtnText}>{saving ? 'Saving…' : 'Save'}</Text>
         </TouchableOpacity>
@@ -275,6 +275,7 @@ const PetFormScreen: React.FC<Props> = ({ pet, ownerId = '', onBack, onSaved }) 
                 placeholderTextColor="#bbb"
                 accessibilityLabel={label.replace('*', '').trim()}
                 returnKeyType="next"
+                testID={`pet-${key}-input`}
               />
             </View>
           ))}

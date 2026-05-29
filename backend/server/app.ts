@@ -42,6 +42,7 @@ import usersRouter from './routes/users';
 import vaccinationsRouter from './routes/vaccinations';
 import vetsRouter from './routes/vets';
 import vitalsRouter from './routes/vitals';
+import appRouter from './routes/app';
 import { attachAudit } from '../middleware/auditLog';
 import federationRouter from '../src/routes/federation';
 
@@ -130,6 +131,7 @@ export function createApp(): Express {
   api.use('/insurance', insuranceRouter);
   api.use('/search', searchRouter);
   api.use('/vitals', vitalsRouter);
+  api.use('/app', appRouter);
 
   app.use('/api', api);
 
