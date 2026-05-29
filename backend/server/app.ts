@@ -1,10 +1,12 @@
+import path from 'path';
+
 import cors from 'cors';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 
 import { errBody } from './response';
-import { applySecurityHeaders } from '../middleware/securityHeaders';
-import { sanitizeInputs } from '../middleware/sanitize';
 import { createRedisSessionMiddleware } from '../middleware/redisSession';
+import { sanitizeInputs } from '../middleware/sanitize';
+import { applySecurityHeaders } from '../middleware/securityHeaders';
 import analyticsRouter from './routes/analytics';
 import appointmentsRouter from './routes/appointments';
 import auditLogsRouter from './routes/auditLogs';
@@ -24,6 +26,7 @@ import syncRouter from './routes/sync';
 import usersRouter from './routes/users';
 import vetsRouter from './routes/vets';
 import { attachAudit } from '../middleware/auditLog';
+import federationRouter from '../src/routes/federation';
 
 // Readiness probe state — set to false while the process is draining
 let isReady = true;
@@ -43,6 +46,12 @@ export function createApp(): Express {
   app.use(createRedisSessionMiddleware());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   app.use(attachAudit as any);
+
+  // Serve stellar.toml for federation discovery
+  app.use(
+    '/.well-known',
+    express.static(path.join(__dirname, '../.well-known'), { dotfiles: 'allow' }),
+  );
 
   const api = express.Router();
 
@@ -67,6 +76,7 @@ export function createApp(): Express {
   // --- Application routes ------------------------------------------------
   api.use('/analytics', analyticsRouter);
   api.use('/backups', backupsRouter);
+  api.use('/federation', federationRouter);
   api.use('/users', usersRouter);
   api.use('/pets', petsRouter);
   api.use('/medical-records', medicalRecordsRouter);
