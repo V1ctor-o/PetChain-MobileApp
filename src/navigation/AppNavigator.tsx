@@ -31,6 +31,7 @@ import PetProfileScreen from '../screens/PetProfileScreen';
 import PetShareScreen from '../screens/PetShareScreen';
 import TravelCertificateScreen from '../screens/TravelCertificateScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ReconciliationScreen from '../screens/ReconciliationScreen';
 import QRScannerScreen from '../screens/QRScannerScreen';
 import VaccinationScreen from '../screens/VaccinationScreen';
 import TelemedicineScreen from '../screens/TelemedicineScreen';
@@ -161,6 +162,9 @@ function PetNavigator() {
       </PetStack.Screen>
       <PetStack.Screen name="NearbyVet" options={{ title: 'Nearby Vet Clinics' }}>
         {({ navigation }) => <NearbyVetScreen onBack={() => navigation.goBack()} />}
+      </PetStack.Screen>
+      <PetStack.Screen name="ReconciliationReport" options={{ title: 'Record Reconciliation' }}>
+        {({ navigation }) => <ReconciliationScreen onBack={() => navigation.goBack()} />}
       </PetStack.Screen>
       <PetStack.Screen
         name="NotificationPreferences"

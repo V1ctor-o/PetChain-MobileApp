@@ -32,6 +32,7 @@ import searchRouter from './routes/search';
 import syncRouter from './routes/sync';
 import travelCertificatesRouter from './routes/travelCertificates';
 import telemedicineRouter from './routes/telemedicine';
+import reconciliationRouter from './routes/reconciliation';
 import usersRouter from './routes/users';
 import vaccinationsRouter from './routes/vaccinations';
 import vetsRouter from './routes/vets';
@@ -104,6 +105,7 @@ export function createApp(): Express {
   api.use('/reports', reportsRouter);
   api.use('/sync', syncRouter);
   api.use('/travel-certificates', travelCertificatesRouter);
+  api.use('/reconciliation', reconciliationRouter);
   api.use('/vets', vetsRouter);
   api.use('/privacy', privacyRouter);
   api.use('/insurance', insuranceRouter);
